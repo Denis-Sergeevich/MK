@@ -1,6 +1,9 @@
+import randomDamage from "./utils.js";
+
 const $arenas = document.querySelector('.arenas');
 const $formFight = document.querySelector('.control');
 const $chat = document.querySelector('.chat');
+
 
 const player1 = {
 	num: 1,
@@ -74,6 +77,8 @@ const logs = {
     draw: 'Ничья - это тоже победа!'
 };
 
+const { start, end, hit, defence, draw } = logs;
+
 function attack() {
 	console.log(`${this.name}Fight...`);
 }
@@ -123,11 +128,7 @@ function playerWin(name) {
 }
 
 
-function randomDamage(num) {
-	const damage = Math.ceil(Math.random() * num);
-	
-	return damage;
-}
+
 
 
 function changeHP(damage) {
@@ -227,7 +228,7 @@ function showResult() {
 
 function showTime() {
 	const date = new Date();
-	return time = `${date.getHours()}:${date.getMinutes()}`;
+	return `${date.getHours()}:${date.getMinutes()}`;
 }
 
 
@@ -236,20 +237,22 @@ function generateLogs(type, playerKick, playerDefence, value) {
 	let el;
 	switch (type) {
 		case 'start':
-			el = `<p>${logs[type].replace('[player2]', playerDefence.name).replace('[player1]', playerKick.name).replace('[time]', showTime())}</p>`;
+			el = `<p>${start.replace('[player2]', playerDefence.name).replace('[player1]', playerKick.name).replace('[time]', showTime())}</p>`;
 			break;		
 		case 'hit':
-			el = `<p>${showTime()} - ${logs[type][randomDamage(logs[type].length - 1)].replace('[playerDefence]', playerDefence.name).replace('[playerKick]', playerKick.name)} -${value} [${playerDefence.hp}/100]</p>`;
+			el = `<p>${showTime()} - ${hit[randomDamage(hit.length - 1)].replace('[playerDefence]', playerDefence.name).replace('[playerKick]', playerKick.name)} -${value} [${playerDefence.hp}/100]</p>`;
 			break
 		case 'defence':
-			el = `<p>${showTime()} - ${logs[type][randomDamage(logs[type].length - 1)].replace('[playerDefence]', playerDefence.name).replace('[playerKick]', playerKick.name)}</p>`;
+			el = `<p>${showTime()} - ${defence[randomDamage(defence.length - 1)].replace('[playerDefence]', playerDefence.name).replace('[playerKick]', playerKick.name)}</p>`;
 			break;
 		case 'draw':
-			el = `<p>${logs[type]}</p>`;
+			el = `<p>${draw}</p>`;
 			break;
 		case 'end':
-			el = `<p>${logs[type][randomDamage(logs[type].length - 1)].replace('[playerWins]', playerKick.name).replace('[playerLose]', playerDefence.name)}</p>`;
+			el = `<p>${end[randomDamage(end.length - 1)].replace('[playerWins]', playerKick.name).replace('[playerLose]', playerDefence.name)}</p>`;
 			break;
+		default:
+			el = `<P>Что-то пошло не так! Попробуй ещё раз!</p>`;
 	}
 	
 	console.log(el);
@@ -265,7 +268,7 @@ $formFight.addEventListener('submit', function (e){
 	const enemy = enemyAttak();
 	const player = playerAttack();
 
-	if (player.hit != enemy.defence) {
+	if (player.hit !== enemy.defence) {
 		player2.changeHP(player.value);
 		player2.renderHP();
 		generateLogs('hit', player1, player2, player.value);
@@ -274,7 +277,7 @@ $formFight.addEventListener('submit', function (e){
 		generateLogs('defence', player1, player2);
 	}
 
-	if (player.defence != enemy.hit) {
+	if (player.defence !== enemy.hit) {
 		player1.changeHP(enemy.value);
 		player1.renderHP();
 		generateLogs('hit', player2, player1, enemy.value);
