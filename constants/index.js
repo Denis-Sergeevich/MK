@@ -1,6 +1,3 @@
-export const $arenas = document.querySelector('.arenas');
-export const $formFight = document.querySelector('.control');
-export const $chat = document.querySelector('.chat');
 
 export const HIT = {
     head: 30,
@@ -10,7 +7,7 @@ export const HIT = {
 
 export const ATTACK = ['head', 'body', 'foot'];
 
-const logs = {
+const LOGS = {
     start: 'Часы показывали [time], когда [player1] и [player2] бросили вызов друг другу.',
     end: [
         'Результат удара [playerWins]: [playerLose] - труп',
@@ -50,4 +47,5 @@ const logs = {
     draw: 'Ничья - это тоже победа!'
 };
 
-export const { start, end, hit, defence, draw } = logs;
+export const { start, end, hit, defence, draw } = LOGS;
+
