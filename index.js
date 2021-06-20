@@ -66,7 +66,7 @@ async function init() {
 
             setTimeout(() => {
                 //TODO: Здесь должен быть код который перенаправит вас на ваше игровое поле...
-                window.location.pathname = './index.html';
+                window.location.pathname = './arena/index.html';
             }, 1000);
         });
 

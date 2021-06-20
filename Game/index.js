@@ -102,7 +102,7 @@ class Game {
         $button.innerText = 'Restart';
         
         $reloadWrap.addEventListener('click', function(){
-            window.location.pathname = './page/index.html';
+            window.location.pathname = '../index.html';
         });
     
         $reloadWrap.appendChild($button);
