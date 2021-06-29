@@ -1,6 +1,4 @@
-import { HIT,
-        ATTACK,
-        start,
+import { start,
         end,
         hit,
         defence,
@@ -10,7 +8,8 @@ import { randomDamage,
         createElement,
         showTime } from "../utils/index.js" ;
 
-import { player1, player2 } from "../examplesPlayer/index.js" 
+
+import Player from "../Player/index.js";
 
 
 
@@ -20,7 +19,81 @@ class Game {
         this.$arenas = document.querySelector('.arenas');
         this.$formFight = document.querySelector('.control');
         this.$chat = document.querySelector('.chat');
+        this.player1 = {};
+        this.player2 = {};
 
+    }
+
+    getPlayers = async () => {
+        const body = fetch('https://reactmarathon-api.herokuapp.com/api/mk/players').then(res => res.json());
+        return body;
+    }
+
+    
+
+    startGame = async () => {
+	
+        const players = await this.getPlayers();
+
+        const p1 = JSON.parse(localStorage.getItem('player1'));
+        const p2 = players[randomDamage(players.length) - 1];
+
+        console.log(p1);
+
+        this.player1 = new Player({
+            ...p1,
+            num: 1,
+            rootSelector: 'arenas',
+        })
+
+        console.log('###', this.player);
+
+        this.player2 = new Player({
+            ...p2,
+            num: 2,
+            rootSelector: 'arenas',
+        })
+
+        this.player1.createPlayer();
+        this.player2.createPlayer();
+    
+        this.generateLogs('start', this.player1, this.player2);
+         
+        this.$formFight.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const { player1 , player2 } = await this.getDamage();
+            const { value, hit, defence } = player1;
+            const { value: valueEnemy, hit: hitEnemy, defence: defenceEnemy} = player2;
+            
+            console.log('###1 ', player1);
+            console.log('###2', player2);
+
+            if (hit !== defenceEnemy) {
+                this.player2.changeHP(value);
+                this.player2.renderHP();
+                this.generateLogs('hit', this.player1, this.player2, value);
+                
+            } else {
+                this.generateLogs('defence', this.player1, this.player2);
+            }
+        
+            if (defence !== hitEnemy) {
+                this.player1.changeHP(valueEnemy);
+                this.player1.renderHP();
+                this.generateLogs('hit', this.player2, this.player1, valueEnemy);
+                
+            } else {
+                this.generateLogs('defence', this.player2, this.player1);
+            }
+        
+            this.showResult();
+        
+            console.log('#### attack', {hit, defence, value});
+            console.log('#### enemy', {hitEnemy, defenceEnemy, value: valueEnemy});
+            console.log(this.player1.hp, this.player2.hp);
+        })
+    
+    
     }
 
     createReloadButton = () => {
@@ -29,7 +102,7 @@ class Game {
         $button.innerText = 'Restart';
         
         $reloadWrap.addEventListener('click', function(){
-            window.location.reload();
+            window.location.pathname = '../index.html';
         });
     
         $reloadWrap.appendChild($button);
@@ -37,36 +110,36 @@ class Game {
         
     }
 
-    enemyAttak = () => {
-        const hit = ATTACK[randomDamage(3) - 1];
-        const defence = ATTACK[randomDamage(3) - 1];
-        
-        return {
-            value: randomDamage(HIT[hit]),
-            hit,
-            defence,
-        }
-    }
 
-    playerAttack = () => {
-        const attack = {};
+    getDamage = async () => {
+        const damage = {};
     
         for (let item of this.$formFight) {
             if (item.checked && item.name === 'hit') {
-                attack.value = randomDamage(HIT[item.value]);
-                attack.hit = item.value;
+                damage.hit = item.value;
             };
     
             if (item.checked && item.name === 'defence') {
-                attack.defence = item.value;
+                damage.defence = item.value;
             }
     
             item.checked = false;
         }
-    
-        return attack;
+        
+        const { hit, defence } = damage;
+
+        const q = fetch('http://reactmarathon-api.herokuapp.com/api/mk/player/fight', {
+            method: 'POST',
+            body: JSON.stringify({
+                hit,
+                defence,
+            })
+        }).then(resp => resp.json());
+
+        return q;
     }
-    
+
+  
     playerWin = (name) => {
         const $winTitle = createElement('div', 'loseTitle');
         if (name) {
@@ -80,8 +153,8 @@ class Game {
 
     showResult = () => {
 	
-        if (player1.hp === 0 || player2.hp === 0){
-            
+        if (this.player1.hp === 0 || this.player2.hp === 0){
+            console.log(this.player1.hp);
             for (let item of this.$formFight) {
                 
                 if (item.name === 'submit') {
@@ -94,13 +167,13 @@ class Game {
     
         }
     
-        if (player1.hp === 0 && player1.hp < player2.hp) {
-            this.$arenas.appendChild(this.playerWin(player2.name));
-            this.generateLogs('end', player2, player1);
-        } else if (player2.hp === 0 && player2.hp < player1.hp) {
-            this.$arenas.appendChild(this.playerWin(player1.name));
-            this.generateLogs('end', player1, player2);
-        } else if (player1.hp === 0 && player2.hp === 0) {
+        if (this.player1.hp === 0 && this.player1.hp < this.player2.hp) {
+            this.$arenas.appendChild(this.playerWin(this.player2.name));
+            this.generateLogs('end', this.player2, this.player1);
+        } else if (this.player2.hp === 0 && this.player2.hp < this.player1.hp) {
+            this.$arenas.appendChild(this.playerWin(this.player1.name));
+            this.generateLogs('end', this.player1, this.player2);
+        } else if (this.player1.hp === 0 && this.player2.hp === 0) {
             this.$arenas.appendChild(this.playerWin());
             this.generateLogs('draw');
         }
@@ -127,53 +200,14 @@ class Game {
                 break;
             default:
                 el = `<P>Что-то пошло не так! Попробуй ещё раз!</p>`;
+                break;
         }
         
         this.$chat.insertAdjacentHTML('afterbegin', el);
     
     }
 
-    startGame = () => {
-	
-        player1.createPlayer();
-        player2.createPlayer();
-    
-        this.generateLogs('start', player1, player2);
-         
-        this.$formFight.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const {hit: hitEnemy, defence: defenceEnemy, value: valueEnemy} = this.enemyAttak();
-            const {hit, defence, value} = this.playerAttack();
-       
-            if (hit !== defenceEnemy) {
-                player2.changeHP(value);
-                player2.renderHP();
-                this.generateLogs('hit', player1, player2, value);
-                
-            } else {
-                this.generateLogs('defence', player1, player2);
-            }
-        
-            if (defence !== hitEnemy) {
-                player1.changeHP(valueEnemy);
-                player1.renderHP();
-                this.generateLogs('hit', player2, player1, valueEnemy);
-                
-            } else {
-                this.generateLogs('defence', player2, player1);
-            }
-        
-            this.showResult();
-        
-            console.log('#### attack', {hit, defence, value});
-            console.log('#### enemy', {hitEnemy, defenceEnemy, value: valueEnemy});
-            console.log(player1.hp, player2.hp);
-        })
-    
-    
-    }
-
-    
+ 
 
 }
 
