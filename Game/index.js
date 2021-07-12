@@ -128,7 +128,7 @@ class Game {
         
         const { hit, defence } = damage;
 
-        const q = fetch('http://reactmarathon-api.herokuapp.com/api/mk/player/fight', {
+        const q = fetch('https://reactmarathon-api.herokuapp.com/api/mk/player/fight', {
             method: 'POST',
             body: JSON.stringify({
                 hit,
